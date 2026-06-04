@@ -112,5 +112,5 @@ solution = scipy.integrate.solve_ivp(derivatives, t_span = (0, 100000), y0=initi
 
 # results
 print(solution.t, solution.y[0], solution.y[1])
-for i in range(len(solution)):
+for i in range(len(solution.t)):
   print(i, solution.t[i], solution.y[0][i], solution.y[1][i])
