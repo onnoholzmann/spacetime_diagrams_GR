@@ -47,17 +47,17 @@ def calc_squared_angular_momentum(nu, u):
   return -(calc_A_derivative(nu, u) / (2*u*calc_A(nu, u) + u**2*calc_A_derivative(nu, u)))
 
 def calc_angular_momentum(nu, u):
-  return scipy.sqrt(calc_squared_angular_momentum(nu, u))
+  return numpy.sqrt(calc_squared_angular_momentum(nu, u))
 calc_p_varphi = calc_angular_momentum
 
 def calc_T_X(t, r):
   # calc V
   v_null =  1/2 * (t-r) 
-  V = scipy.arctan(v_null)
+  V = numpy.arctan(v_null)
 
   # calc U
   u_null = 1/2 * (t+r) 
-  U = scipy.arctan(u_null)
+  U = numpy.arctan(u_null)
 
   # calc the graph coords
   T = (V + U) / 2
@@ -70,7 +70,7 @@ def calc_z_3(nu):
 
 # H is the hamiltonian
 def calc_H_eff(p_r, p_varphi, nu, r):
-  return scipy.sqrt(p_r**2 + calc_A(nu, r) * (1 + p_varphi**2/r**2 + calc_z_3(nu) * p_r**4/r**2))
+  return numpy.sqrt(p_r**2 + calc_A(nu, r) * (1 + p_varphi**2/r**2 + calc_z_3(nu) * p_r**4/r**2))
 
 def calc_H(p_r, p_varphi, nu, r):
-  return 1/nu * scipy.sqrt(1 + 2*nu*(calc_H_eff(p_r, p_varphi, nu, r) - 1))
+  return 1/nu * numpy.sqrt(1 + 2*nu*(calc_H_eff(p_r, p_varphi, nu, r) - 1))
