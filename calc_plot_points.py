@@ -1,5 +1,7 @@
 from scipy.integrate import quad
 import scipy.constants as constants
+import scipy
+# imported the things that are used more often seperately, but might be better to use either full aliasing, or none
 import numpy
 from functools import cache
 
@@ -10,6 +12,7 @@ c=G=M=1
 or you could use the classical values
 """
 a_4 = 94/3 - 41/32*constants.pi**2
+gamma = (a_4 + 4) / 2
 c = 1
 G = 1
 M = 1
@@ -22,17 +25,44 @@ M = constants.M
 
 @cache
 def get_u(R):
-    return (G*M) / (c**2*R)
+  return (G*M) / (c**2*R)
 
-def calc_D(R, nu):
-    return 1 - 6*nu*get_u(R)**2 + 2*(3*nu-26)*nu*get_u(R)
+def calc_D(nu, u):
+  return 1 - 6*nu*u**2 + 2*(3*nu-26)*nu*u**3
 
-def calc_A(R, nu):
-    return (1-2*get_u(R)) * ((1-(a_4+4)/2*get_u(R)) / (1-(a_4+4)/2*get_u(R)-2*nu*get_u(R)**3))
+def calc_A(nu, u):
+  return (1-2*u) * ((1-(a_4+4)/2*u) / (1-(a_4+4)/2*u-2*nu*u**3))
+
+def calc_A_derivative(nu, u):
+  return -2*(1-gamma*u) / (1-gamma*u-2*nu*u**3) + (1-2*u) * (-4*nu*gamma*u**3+6*nu*u**2) / ((1-gamma*u-2*nu*u**3)**2)
 
 def integrand(R, nu):
-    return numpy.sqrt(calc_D(R, nu))/calc_A(R, nu)
+  return numpy.sqrt(calc_D(R, nu))/calc_A(R, nu)
 
 def calc_tortoise(R, nu, R0):
-    tortoise = quad(integrand, R0, R, args=(nu))
+  tortoise = quad(integrand, R0, R, args=(nu))
+  return tortoise
 
+def calc_squared_angular_momentum(nu, u):
+  return -(calc_A_derivative(nu, u) / (2*u*calc_A(nu, u) + u**2*calc_A_derivative(nu, u)))
+
+def calc_angular_momentum(nu, u):
+  return scipy.sqrt(calc_squared_angular_momentum(nu, u))
+calc_p_varphi = calc_angular_momentum
+
+def calc_T_X(t, r):
+  # calc V
+  v_null =  1/2 * (t-r) 
+  V = scipy.arctan(v_null)
+
+  # calc U
+  u_null = 1/2 * (t+r) 
+  U = scipy.arctan(u_null)
+
+  # calc the graph coords
+  T = (V + U) / 2
+  X = (V - U) / 2
+  return T, X
+
+def calc_z_3(nu):
+  return 2*nu * (4 - 3*nu)
