@@ -64,5 +64,13 @@ def calc_T_X(t, r):
   X = (V - U) / 2
   return T, X
 
+# might needs to be a constant
 def calc_z_3(nu):
   return 2*nu * (4 - 3*nu)
+
+# H is the hamiltonian
+def calc_H_eff(p_r, p_varphi, nu, r):
+  return scipy.sqrt(p_r**2 + calc_A(nu, r) * (1 + p_varphi**2/r**2 + calc_z_3(nu) * p_r**4/r**2))
+
+def calc_H(p_r, p_varphi, nu, r):
+  return 1/nu * scipy.sqrt(1 + 2*nu*(calc_H_eff(p_r, p_varphi, nu, r) - 1))
