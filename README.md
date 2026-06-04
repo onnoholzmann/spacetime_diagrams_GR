@@ -1,1 +1,1 @@
-# latex_spacetime_diagrams_GR
+# spacetime diagrams GR
