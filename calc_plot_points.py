@@ -107,10 +107,14 @@ check_event_horizon.terminal = True
 check_event_horizon.direction = -1
 
 # initial_conditions = [r_0, varphi_0, p_varphi_0, p_r_0]
-initial_conditions = [15, 0, calc_p_varphi(nu, 1/15), 0]
-solution = scipy.integrate.solve_ivp(derivatives, t_span = (0, 100000), y0=initial_conditions, events=check_event_horizon, dense_output=True)
+# initial_conditions = [15, 0, calc_p_varphi(nu, 1/15), 0]
+def get_solution(initial_conditions=[15, 0, calc_p_varphi(nu, 1/15), 0]):
+  solution = scipy.integrate.solve_ivp(derivatives, t_span = (0, 100000), y0=initial_conditions, events=check_event_horizon, dense_output=True)
 
-# results
-print(solution.t, solution.y[0], solution.y[1])
-for i in range(len(solution.t)):
-  print(i, solution.t[i], solution.y[0][i], solution.y[1][i])
+# if this file gets executed, output the solution
+if(__name__ == "__main__"):
+  # results
+  solution = get_solution()
+  print(solution.t, solution.y[0], solution.y[1])
+  for i in range(len(solution.t)):
+    print(i, solution.t[i], solution.y[0][i], solution.y[1][i])
