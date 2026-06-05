@@ -67,8 +67,11 @@ def calc_z_3(nu):
   return 2*nu * (4 - 3*nu)
 
 # H is the hamiltonian
+# def calc_H_eff(p_r, p_varphi, nu, r):
+  # return numpy.sqrt(p_r**2 + calc_A(nu, 1/r) * (1 + p_varphi**2/r**2 + calc_z_3(nu) * p_r**4/r**2))
 def calc_H_eff(p_r, p_varphi, nu, r):
-  return numpy.sqrt(p_r**2 + calc_A(nu, 1/r) * (1 + p_varphi**2/r**2 + calc_z_3(nu) * p_r**4/r**2))
+  p_r_safe = numpy.clip(p_r, -1e4, 1e4)
+  return numpy.sqrt(p_r_safe**2 + calc_A(nu, 1/r) * (1 + p_varphi**2/r**2 + calc_z_3(nu) * p_r_safe**4/r**2))
 
 def calc_H(p_r, p_varphi, nu, r):
   return 1/nu * numpy.sqrt(1 + 2*nu*(calc_H_eff(p_r, p_varphi, nu, r) - 1))
@@ -81,6 +84,7 @@ z_3 = calc_z_3(nu)
 
 def derivatives(t, y):
   r, varphi, p_varphi, p_r = y
+  p_r = numpy.clip(p_r, -1e4, 1e4)  # add this line at the top
 
   # calc all the values used in the derivatives
   u=1/r
@@ -110,6 +114,7 @@ check_event_horizon.direction = -1
 # initial_conditions = [15, 0, calc_p_varphi(nu, 1/15), 0]
 def get_solution(initial_conditions=[15, 0, calc_p_varphi(nu, 1/15), 0]):
   solution = scipy.integrate.solve_ivp(derivatives, t_span = (0, 100000), y0=initial_conditions, events=check_event_horizon, dense_output=True)
+  return solution
 
 # if this file gets executed, output the solution
 if(__name__ == "__main__"):
