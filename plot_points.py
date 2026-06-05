@@ -129,6 +129,7 @@ for idx in range(len(all_T_lists)):
   label_name = f'Initial r_0 = {start + idx}' if idx == 0 else None
   # plt.plot(X_smooth, T_smooth, color='blue', alpha=0.7, label=label_name)
   plt.plot(all_X_lists[idx], all_T_lists[idx], color='blue', alpha=0.7, label=label_name)
+  plt.plot(all_X_lists[idx], numpy.multiply(-1, all_T_lists[idx]), color='blue', alpha=0.7, label=label_name)
 
 # Define the 4 corners of your Penrose diamond
 points = [
