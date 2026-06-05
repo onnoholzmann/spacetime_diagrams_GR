@@ -50,11 +50,11 @@ calc_p_varphi = calc_angular_momentum
 
 def calc_T_X(t, r):
   # calc V
-  v_null =  1/2 * (t-r) 
+  v_null = t + r
   V = numpy.arctan(v_null)
 
   # calc U
-  u_null = 1/2 * (t+r) 
+  u_null = t - r
   U = numpy.arctan(u_null)
 
   # calc the graph coords
@@ -109,7 +109,13 @@ def check_event_horizon(t, y):
   return calc_A(nu, 1/r)
 check_event_horizon.terminal = True
 check_event_horizon.direction = -1
-
+"""
+def calc_r_event_horizon():
+  # the event horizon is where A == 0
+  return scipy.optimize.fsolve(lambda r: calc_A(nu, 1/r), 12)[0]
+r_event_horizon = calc_r_event_horizon()
+print(f"r_event_horizon = {r_event_horizon}")
+"""
 # initial_conditions = [r_0, varphi_0, p_varphi_0, p_r_0]
 # initial_conditions = [15, 0, calc_p_varphi(nu, 1/15), 0]
 def get_solution(initial_conditions=[15, 0, calc_p_varphi(nu, 1/15), 0]):

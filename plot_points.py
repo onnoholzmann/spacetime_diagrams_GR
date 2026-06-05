@@ -80,7 +80,14 @@ import numpy, scipy, matplotlib
 
 all_T_lists = []
 all_X_lists = []
-for r_0 in range(15, 30):
+start, end = 12, 50
+mid = (start + end)/2
+nu_range = mid + (end-mid) * numpy.sin(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, 50))**3
+# nu_range = mid + (end-mid) * numpy.linspace(-1, 1, 33)**3
+# for r_0 in numpy.arange(15, 50, 0.25):
+# for r_0 in numpy.arange(4, 20):
+for r_0 in nu_range:
+# for r_0 in numpy.arange(start, end):
   # plot_coords_list = []
   T_list, X_list = [], []
   # initial_conditions = [r_0, varphi_0, p_varphi_0, p_r_0]
@@ -88,7 +95,8 @@ for r_0 in range(15, 30):
   initial_conditions = [r_0, 0, calc_p_varphi(nu, 1/r_0), 0]
   solution = get_solution(initial_conditions)
   for i in range(len(solution.t)):
-    R, _ = calc_tortoise(solution.y[0][i], nu, 15)
+    R, _ = calc_tortoise(solution.y[0][i], nu, mid)
+    # R, _ = calc_tortoise(solution.y[0][i], nu, start)
     # plot_coords_list.append(calc_T_X(solution.t[i], R))
     T, X = calc_T_X(solution.t[i], R)
     T_list.append(T)
@@ -118,8 +126,9 @@ for idx in range(len(all_T_lists)):
     # --------------------------
     
     # Plot the smoothed line (only add to legend on the first iteration)
-  label_name = f'Initial r_0 = {15 + idx}' if idx == 0 else None
-  plt.plot(X_smooth, T_smooth, color='blue', alpha=0.7, label=label_name)
+  label_name = f'Initial r_0 = {start + idx}' if idx == 0 else None
+  # plt.plot(X_smooth, T_smooth, color='blue', alpha=0.7, label=label_name)
+  plt.plot(all_X_lists[idx], all_T_lists[idx], color='blue', alpha=0.7, label=label_name)
 
 # Define the 4 corners of your Penrose diamond
 points = [
