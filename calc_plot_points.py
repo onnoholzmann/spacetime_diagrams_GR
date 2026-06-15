@@ -51,11 +51,11 @@ calc_p_varphi = calc_angular_momentum
 def calc_T_X(t, r):
   # calc V
   v_null = t + r
-  V = numpy.arctan(v_null)
+  V = numpy.arctan(numpy.exp(v_null/(4*M)))
 
   # calc U
   u_null = t - r
-  U = numpy.arctan(u_null)
+  U = numpy.arctan(-numpy.exp(-u_null/(4*M)))
 
   # calc the graph coords
   T = (V + U) / 2

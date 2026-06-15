@@ -133,10 +133,10 @@ for idx in range(len(all_T_lists)):
 
 # Define the 4 corners of your Penrose diamond
 points = [
-    (-numpy.pi/2, 0),       # Left (i^0)
-    (0, numpy.pi/2),        # Top (i^+)
+    (0, 0),       # Left (i^0)
+    (numpy.pi/4, numpy.pi/4),        # Top (i^+)
     (numpy.pi/2, 0),        # Right (i^0)
-    (0, -numpy.pi/2)        # Bottom (i^-)
+    (numpy.pi/4, -numpy.pi/4)        # Bottom (i^-)
 ]
 
 # Create the polygon
