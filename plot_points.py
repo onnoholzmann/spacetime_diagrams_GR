@@ -154,17 +154,17 @@ ax.add_patch(diamond)
 text_kwargs = dict(fontsize=12, zorder=5, va='center', ha='center')
 
 # i+-0
-plt.text(0, numpy.pi/2 + 0.08, r'$i^+$', **text_kwargs)        # Future Timelike Infinity
-plt.text(0, -numpy.pi/2 - 0.08, r'$i^-$', **text_kwargs)       # Past Timelike Infinity
+plt.text(numpy.pi/4, numpy.pi/4 + 0.08, r'$i^+$', **text_kwargs)        # Future Timelike Infinity
+plt.text(numpy.pi/4, -numpy.pi/4 - 0.08, r'$i^-$', **text_kwargs)       # Past Timelike Infinity
 plt.text(numpy.pi/2 + 0.08, 0, r'$i^0$', **text_kwargs)        # Spatial Infinity (r -> oo)
 
 # SCRI
-plt.text(numpy.pi/4 + 0.12, numpy.pi/4 + 0.05, r'$\mathcal{I}^+$', **text_kwargs)  # Future Null Infinity
-plt.text(numpy.pi/4 + 0.12, -numpy.pi/4 - 0.05, r'$\mathcal{I}^-$', **text_kwargs) # Past Null Infinity
+plt.text(numpy.pi/8*3 + 0.12, numpy.pi/8 + 0.05, r'$\mathcal{I}^+$', **text_kwargs)  # Future Null Infinity
+plt.text(numpy.pi/8*3 + 0.12, -numpy.pi/8 - 0.05, r'$\mathcal{I}^-$', **text_kwargs) # Past Null Infinity
 
 # event horizon labels
-plt.text(-numpy.pi/4 - 0.18, numpy.pi/4 + 0.02, 'Future Event Horizon', fontsize=10, color='darkred', va='center', ha='center', rotation=45)
-plt.text(-numpy.pi/4 - 0.18, -numpy.pi/4 - 0.02, 'Past Event Horizon', fontsize=10, color='darkred', va='center', ha='center', rotation=-45)
+plt.text(numpy.pi/8 - 0.18, numpy.pi/8 + 0.02, 'Future Event Horizon', fontsize=10, color='darkred', va='center', ha='center', rotation=45)
+plt.text(numpy.pi/8 - 0.18, -numpy.pi/8 - 0.02, 'Past Event Horizon', fontsize=10, color='darkred', va='center', ha='center', rotation=-45)
 
 plt.xlabel('X')
 plt.ylabel('T')
