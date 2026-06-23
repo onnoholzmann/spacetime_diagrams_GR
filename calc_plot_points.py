@@ -159,7 +159,7 @@ def derivatives(t, y):
   r_omega = r*psi**(1/3)
   v_varphi = dvarphi_dt * r_omega
   f_resummed = calc_f_resummed(nu)
-  f_varphi = -32/5 * nu * dvarphi_dt**5*r**4 * f_resummed
+  f_varphi = -32/5 * nu * dvarphi_dt**5*r_omega**4 * f_resummed
   dp_varphi_dt = f_varphi
   # it is assumed 0, since we assume no radiation(friction in this case), at least for now
   dp_r_dt = -A/numpy.sqrt(D) * 1/(2*nu*H*H_eff) * (A_derivative + p_varphi**2/r**2 * (A_derivative - 2*A/r) + z_3*(A_derivative/r**2 - 2*A/r**3) * p_r**4)
