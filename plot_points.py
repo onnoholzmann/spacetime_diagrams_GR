@@ -77,6 +77,7 @@ plt.show()
 import matplotlib.pyplot as plt
 from calc_plot_points import get_solution, calc_tortoise, calc_T_X, calc_p_varphi, nu
 import numpy, scipy, matplotlib
+import time
 
 all_T_lists = []
 all_X_lists = []
@@ -87,6 +88,8 @@ nu_range = mid + (end-mid) * numpy.sin(numpy.linspace(-numpy.pi / 2, numpy.pi / 
 # for r_0 in numpy.arange(15, 50, 0.25):
 # for r_0 in numpy.arange(4, 20):
 for r_0 in nu_range:
+  time_start = time.time()
+  print(f'r_0 = {r_0}')
 # for r_0 in numpy.arange(start, end):
   # plot_coords_list = []
   T_list, X_list = [], []
@@ -103,6 +106,7 @@ for r_0 in nu_range:
     X_list.append(X)
   all_T_lists.append(T_list)
   all_X_lists.append(X_list)
+  print(f"it took {time.time()-time_start}s")
 
 # T, X = zip(*plot_coords_list)
 
