@@ -78,18 +78,15 @@ import matplotlib.pyplot as plt
 from calc_plot_points import get_solution, calc_tortoise, calc_T_X, calc_p_varphi, nu
 import numpy, scipy, matplotlib
 import time
+from multiprocessing import Pool, cpu_count
 
-all_T_lists = []
-all_X_lists = []
-start, end = 12, 50
-mid = (start + end)/2
-nu_range = mid + (end-mid) * numpy.sin(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, 50))**3
 # nu_range = mid + (end-mid) * numpy.linspace(-1, 1, 33)**3
 # for r_0 in numpy.arange(15, 50, 0.25):
 # for r_0 in numpy.arange(4, 20):
-for r_0 in nu_range:
+def process_single_r0(args):
+  r_0, mid = args
   time_start = time.time()
-  print(f'r_0 = {r_0}')
+  print(f'starting r_0 = {r_0}')
 # for r_0 in numpy.arange(start, end):
   # plot_coords_list = []
   T_list, X_list = [], []
@@ -104,79 +101,101 @@ for r_0 in nu_range:
     T, X = calc_T_X(solution.t[i], R)
     T_list.append(T)
     X_list.append(X)
-  all_T_lists.append(T_list)
-  all_X_lists.append(X_list)
+    
   print(f"it took {time.time()-time_start}s")
+  return(T_list, X_list)
 
-# T, X = zip(*plot_coords_list)
-
-plt.figure(figsize=(6, 8))
-ax = plt.gca()
-
-for idx in range(len(all_T_lists)):
-  T_arr = numpy.array(all_T_lists[idx])
-  X_arr = numpy.array(all_X_lists[idx])
+if __name__ == "__main__":
+    all_T_lists = []
+    all_X_lists = []
+    start, end = 12, 50
+    mid = (start + end)/2
+    nu_range = mid + (end-mid) * numpy.sin(numpy.linspace(-numpy.pi / 2, numpy.pi / 2, 50))**3
     
-  # --- INTERPOLATION STEP ---
-  # We create a parametric variable 's' from 0 to 1 based on the index.
-  # This is much safer than interpolating T vs X directly, as it handles 
-  # any curve shape without throwing "duplicate x values" errors.
-  s = numpy.linspace(0, 1, len(T_arr))  
-  s_smooth = numpy.linspace(0, 1, 300) # Generate 300 smooth points
+    # Prepare arguments for multiprocessing
+    args_list = [(r_0, mid) for r_0 in nu_range]
     
-    # k=3 means cubic spline interpolation
-  T_smooth = scipy.interpolate.make_interp_spline(s, T_arr, k=3)(s_smooth)
-  X_smooth = scipy.interpolate.make_interp_spline(s, X_arr, k=3)(s_smooth)
-    # --------------------------
+    # Run simulations in parallel
+    num_workers = max(1, cpu_count() - 1)
+    print(f"Starting pool with {num_workers} workers...")
     
-    # Plot the smoothed line (only add to legend on the first iteration)
-  label_name = f'Initial r_0 = {start + idx}' if idx == 0 else None
-  # plt.plot(X_smooth, T_smooth, color='blue', alpha=0.7, label=label_name)
-  plt.plot(all_X_lists[idx], all_T_lists[idx], color='blue', alpha=0.7, label=label_name)
-  plt.plot(all_X_lists[idx], numpy.multiply(-1, all_T_lists[idx]), color='blue', alpha=0.7)
+    with Pool(processes=num_workers) as pool:
+        results = pool.map(process_single_r0, args_list)
+    
+    # Unpack results
+    for T_list, X_list in results:
+        all_T_lists.append(T_list)
+        all_X_lists.append(X_list)
 
-# Define the 4 corners of your Penrose diamond
-points = [
-    (0, 0),       # Left (i^0)
-    (numpy.pi/4, numpy.pi/4),        # Top (i^+)
-    (numpy.pi/2, 0),        # Right (i^0)
-    (numpy.pi/4, -numpy.pi/4)        # Bottom (i^-)
-]
-
-# Create the polygon
-# fill=False ensures it's just the black outline
-diamond = matplotlib.patches.Polygon(
-    points, 
-    closed=True, 
-    fill=False, 
-    edgecolor='black', 
-    linewidth=2
-)
-ax.add_patch(diamond)
-
-# PENROSE DIAGRAM LABELS
-text_kwargs = dict(fontsize=12, zorder=5, va='center', ha='center')
-
-# i+-0
-plt.text(numpy.pi/4, numpy.pi/4 + 0.08, r'$i^+$', **text_kwargs)        # Future Timelike Infinity
-plt.text(numpy.pi/4, -numpy.pi/4 - 0.08, r'$i^-$', **text_kwargs)       # Past Timelike Infinity
-plt.text(numpy.pi/2 + 0.08, 0, r'$i^0$', **text_kwargs)        # Spatial Infinity (r -> oo)
-
-# SCRI
-plt.text(numpy.pi/8*3 + 0.12, numpy.pi/8 + 0.05, r'$\mathcal{I}^+$', **text_kwargs)  # Future Null Infinity
-plt.text(numpy.pi/8*3 + 0.12, -numpy.pi/8 - 0.05, r'$\mathcal{I}^-$', **text_kwargs) # Past Null Infinity
-
-# event horizon labels
-plt.text(numpy.pi/8 - 0.18, numpy.pi/8 + 0.02, 'Future Event Horizon', fontsize=10, color='darkred', va='center', ha='center', rotation=45)
-plt.text(numpy.pi/8 - 0.18, -numpy.pi/8 - 0.02, 'Past Event Horizon', fontsize=10, color='darkred', va='center', ha='center', rotation=-45)
-
-plt.xlabel('X')
-plt.ylabel('T')
-plt.title('Penrose Diagram: EOB Worldlines')
-plt.legend()
-plt.axis('equal')
-plt.grid(True, linestyle='--', alpha=0.5)
-plt.show()
+    # T, X = zip(*plot_coords_list)
+    
+    plt.figure(figsize=(6, 8))
+    ax = plt.gca()
+    
+    for idx in range(len(all_T_lists)):
+      T_arr = numpy.array(all_T_lists[idx])
+      X_arr = numpy.array(all_X_lists[idx])
+    
+      # --- INTERPOLATION STEP ---
+      # We create a parametric variable 's' from 0 to 1 based on the index.
+      # This is much safer than interpolating T vs X directly, as it handles 
+      # any curve shape without throwing "duplicate x values" errors.
+      s = numpy.linspace(0, 1, len(T_arr))  
+      s_smooth = numpy.linspace(0, 1, 300) # Generate 300 smooth points
+    
+        # k=3 means cubic spline interpolation
+      T_smooth = scipy.interpolate.make_interp_spline(s, T_arr, k=3)(s_smooth)
+      X_smooth = scipy.interpolate.make_interp_spline(s, X_arr, k=3)(s_smooth)
+        # --------------------------
+    
+        # Plot the smoothed line (only add to legend on the first iteration)
+      label_name = f'Initial r_0 = {start + idx}' if idx == 0 else None
+      # plt.plot(X_smooth, T_smooth, color='blue', alpha=0.7, label=label_name)
+      plt.plot(all_X_lists[idx], all_T_lists[idx], color='blue', alpha=0.7, label=label_name)
+      plt.plot(all_X_lists[idx], numpy.multiply(-1, all_T_lists[idx]), color='blue', alpha=0.7)
+    
+    # Define the 4 corners of your Penrose diamond
+    points = [
+        (0, 0),       # Left (i^0)
+        (numpy.pi/4, numpy.pi/4),        # Top (i^+)
+        (numpy.pi/2, 0),        # Right (i^0)
+        (numpy.pi/4, -numpy.pi/4)        # Bottom (i^-)
+    ]
+    
+    # Create the polygon
+    # fill=False ensures it's just the black outline
+    diamond = matplotlib.patches.Polygon(
+        points, 
+        closed=True, 
+        fill=False, 
+        edgecolor='black', 
+        linewidth=2
+    )
+    ax.add_patch(diamond)
+    
+    # PENROSE DIAGRAM LABELS
+    text_kwargs = dict(fontsize=12, zorder=5, va='center', ha='center')
+    
+    # i+-0
+    plt.text(numpy.pi/4, numpy.pi/4 + 0.08, r'$i^+$', **text_kwargs)        # Future Timelike Infinity
+    plt.text(numpy.pi/4, -numpy.pi/4 - 0.08, r'$i^-$', **text_kwargs)       # Past Timelike Infinity
+    plt.text(numpy.pi/2 + 0.08, 0, r'$i^0$', **text_kwargs)        # Spatial Infinity (r -> oo)
+    
+    # SCRI
+    plt.text(numpy.pi/8*3 + 0.12, numpy.pi/8 + 0.05, r'$\mathcal{I}^+$', **text_kwargs)  # Future Null Infinity
+    plt.text(numpy.pi/8*3 + 0.12, -numpy.pi/8 - 0.05, r'$\mathcal{I}^-$', **text_kwargs) # Past Null Infinity
+    
+    # event horizon labels
+    plt.text(numpy.pi/8 - 0.18, numpy.pi/8 + 0.02, 'Future Event Horizon', fontsize=10, color='darkred', va='center', ha='center', rotation=45)
+    plt.text(numpy.pi/8 - 0.18, -numpy.pi/8 - 0.02, 'Past Event Horizon', fontsize=10, color='darkred', va='center', ha='center', rotation=-45)
+    
+    plt.xlabel('X')
+    plt.ylabel('T')
+    plt.title('Penrose Diagram: EOB Worldlines')
+    plt.legend()
+    plt.axis('equal')
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.show()
 
 """
 plt.figure(figsize=(6, 8))
