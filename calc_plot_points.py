@@ -34,11 +34,13 @@ def calc_D(nu, u):
 
 @njit(fastmath=True)
 def calc_A(nu, u):
-  return (1-2*u) * ((1-(a_4+4)/2*u) / (1-(a_4+4)/2*u-2*nu*u**3))
+  # return (1-2*u) * ((1-(a_4+4)/2*u) / (1-(a_4+4)/2*u-2*nu*u**3))
+  return 1 - 2*u + 2*nu*u**3 + a_4*nu*u**4
 
 @njit(fastmath=True)
 def calc_A_derivative(nu, u):
-  return -2*(1-gamma*u) / (1-gamma*u-2*nu*u**3) + (1-2*u) * (-4*nu*gamma*u**3+6*nu*u**2) / ((1-gamma*u-2*nu*u**3)**2)
+  # return -2*(1-gamma*u) / (1-gamma*u-2*nu*u**3) + (1-2*u) * (-4*nu*gamma*u**3+6*nu*u**2) / ((1-gamma*u-2*nu*u**3)**2)
+  return -2 + 6*nu*u**2 + 4*a_4*nu*u**3
 
 @njit(fastmath=True)
 def integrand(R, nu):
@@ -87,10 +89,10 @@ def remove_calc_f_taylor(nu):
   return f_taylor
 @njit(fastmath=True)
 def calc_f_taylor_cooficients(nu):
-  return [1, 0, -1247*nu**2/336, 4*numpy.pi*nu**3, -44711*nu**4/9072, -8191*numpy.pi*nu**5/672,
-                        nu**6*(6643739519/69854400 - 1712*numpy.euler_gamma/105 + 16*numpy.pi**2/3 - 3424*math.log(2)/105 - 1712*math.log(nu)/105),
-                        -16285*numpy.pi*nu**7/504,
-                        nu**8*(-323105549467/3178375200 + 232597*numpy.euler_gamma/4410 - 1369*numpy.pi**2/126 + 39931*math.log(2)/294 - 47385*math.log(3)/1568 + 232597*math.log(nu)/4410)]
+  return [1, 0, -1247/336, 4*numpy.pi, -44711/9072, -8191*numpy.pi/672,
+                        (6643739519/69854400 - 1712*numpy.euler_gamma/105 + 16*numpy.pi**2/3 - 3424*math.log(2)/105 - 1712*math.log(nu)/105),
+                        -16285*numpy.pi/504,
+                        (-323105549467/3178375200 + 232597*numpy.euler_gamma/4410 - 1369*numpy.pi**2/126 + 39931*math.log(2)/294 - 47385*math.log(3)/1568 + 232597*math.log(nu)/4410)]
 # f_taylor_cooficients = [1, 0, -1247*nu**2/336, 4*numpy.pi*nu**3, -44711*nu**4/9072, -8191*numpy.pi*nu**5/672,
                         # nu**6*(6643739519/6985440 - 1712*numpy.euler_gamma/105 + 16*numpy.pi**2/3 - 3424*math.log(2)/105 - 1712*math.log(nu)/105),
                         # -16285*numpy.pi*nu**7/504,
@@ -108,7 +110,7 @@ def calc_f_resummed(v_varphi):
   for i in range(9):
     shifted_f_taylor_cooficients[i] = f_taylor_cooficients[i]
     if i > 0:
-      shifted_f_taylor_cooficients[i] -= f_taylor_cooficients[i]/nu_pole
+      shifted_f_taylor_cooficients[i] -= f_taylor_cooficients[i-1]/nu_pole
     # if i < len(f_taylor_cooficients) - 1:
       # shifted_f_taylor_cooficients[i+1] -= f_taylor_cooficients[i]/nu_pole
   p, q = mpmath.pade(shifted_f_taylor_cooficients, 4, 4)
@@ -138,6 +140,8 @@ def calc_H(p_r, p_varphi, nu, r):
 # nu = mu / M
 # nu is the mass ratio
 nu = 1/4
+R_STOP = 3.0        # light ring; D-zero is at 2.5427, A-minimum at ~2.22
+RADIATION = True
 # since nu is constant, z_3 is also constant
 z_3 = calc_z_3(nu)
 
@@ -166,14 +170,24 @@ def derivatives(t, y):
 
   # nu_varphi = r * dvarphi_dt
   # Omega**5*r**4 == (nu_varphi**15 / r)
+  if RADIATION:
+    psi = 2/r**2 * (1/dA_dr) * (1 + 2*nu*(numpy.sqrt(A * (1 + p_varphi**2/r**2)) - 1))
+    r_omega = r*psi**(1/3)
+    v_varphi = dvarphi_dt * r_omega
+    dp_varphi_dt = -32/5 * nu * dvarphi_dt**5 * r_omega**4 * calc_f_resummed(v_varphi)
+  else:
+    dp_varphi_dt = 0.0
+  """
   psi = 2/r**2 * (1/dA_dr) * (1 + 2*nu*(numpy.sqrt(A * (1 + p_varphi**2/r**2)) - 1))
   r_omega = r*psi**(1/3)
   v_varphi = dvarphi_dt * r_omega
   f_resummed = calc_f_resummed(v_varphi)
   f_varphi = -32/5 * nu * dvarphi_dt**5*r_omega**4 * f_resummed
   dp_varphi_dt = f_varphi
+  """
   # it is assumed 0, since we assume no radiation(friction in this case), at least for now
   dp_r_dt = -A/numpy.sqrt(D) * 1/(2*nu*H*H_eff) * (dA_dr + p_varphi**2/r**2 * (dA_dr - 2*A/r) + z_3*(dA_dr/r**2 - 2*A/r**3) * p_r**4)
+  # dp_r_dt = -A/numpy.sqrt(D) * 1/(2*nu*H*H_eff) * (A_derivative + p_varphi**2/r**2 * (A_derivative - 2*A/r) + z_3*(A_derivative/r**2 - 2*A/r**3) * p_r**4)
 
   return [dr_dt, dvarphi_dt, dp_varphi_dt, dp_r_dt]
 
@@ -192,8 +206,13 @@ print(f"r_event_horizon = {r_event_horizon}")
 """
 # initial_conditions = [r_0, varphi_0, p_varphi_0, p_r_0]
 # initial_conditions = [15, 0, calc_p_varphi(nu, 1/15), 0]
-def get_solution(initial_conditions=[15, 0, calc_p_varphi(nu, 1/15), 0]):
-  solution = scipy.integrate.solve_ivp(derivatives, t_span = (0, 100000), rtol=1e-6, atol=1e-8, y0=initial_conditions, events=check_event_horizon, dense_output=True, method="DOP853")
+def stop_at_r_stop(t, y):
+  return y[0] - R_STOP
+stop_at_r_stop.terminal = True
+stop_at_r_stop.direction = -1
+
+def get_solution(initial_conditions=[15, 0, calc_p_varphi(nu, 1/15), 0], t_max=100000):
+  solution = scipy.integrate.solve_ivp(derivatives, t_span = (0, t_max), rtol=1e-10, atol=1e-12, y0=initial_conditions, events=(check_event_horizon, stop_at_r_stop), dense_output=True, method="DOP853")
   return solution
 
 # if this file gets executed, output the solution
